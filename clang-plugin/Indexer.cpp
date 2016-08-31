@@ -568,6 +568,15 @@ public:
     NO_CROSSREF = 1,
   };
 
+  struct Context {
+    std::string mName;
+    std::string mSymbol;
+
+    Context() {}
+    Context(std::string name, std::string symbol) :
+     mName(name), mSymbol(symbol) {}
+  };
+
   bool TraverseEnumDecl(EnumDecl* d) {
     AutoSetContext asc(this, d);
     return Super::TraverseEnumDecl(d);
@@ -603,23 +612,36 @@ public:
     return Super::TraverseCXXDestructorDecl(d);
   }
 
-  std::string TranslateContext(NamedDecl* d) {
+  Context TranslateContext(NamedDecl* d) {
     const FunctionDecl *f = dyn_cast<FunctionDecl>(d);
     if (f && f->isTemplateInstantiation()) {
       d = f->getTemplateInstantiationPattern();
     }
 
-    return d->getQualifiedNameAsString();
+    return Context(d->getQualifiedNameAsString(),
+                   GetMangledName(mMangleContext, d));
   }
 
-  std::string GetContext(Stmt* stmt) {
+  Context GetContext(Stmt* stmt) {
+    if (stmt->getLocStart().isMacroID()) {
+      // If we're inside a macro definition, we don't return any context. It
+      // will probably not be what the user expects if we do.
+      return Context();
+    }
+
     if (mDeclContext) {
       return TranslateContext(mDeclContext->mDecl);
     }
-    return "";
+    return Context();
   }
 
-  std::string GetContext(Decl* d) {
+  Context GetContext(Decl* d) {
+    if (d->getLocation().isMacroID()) {
+      // If we're inside a macro definition, we don't return any context. It
+      // will probably not be what the user expects if we do.
+      return Context();
+    }
+
     AutoSetContext* ctxt = mDeclContext;
     while (ctxt) {
       if (ctxt->mDecl != d) {
@@ -627,7 +649,7 @@ public:
       }
       ctxt = ctxt->mPrev;
     }
-    return "";
+    return Context();
   }
 
   void VisitToken(const char *kind,
@@ -635,7 +657,7 @@ public:
                   std::string qualName,
                   SourceLocation loc,
                   const std::vector<std::string>& symbols,
-                  std::string context = "",
+                  Context context = Context(),
                   int flags = 0)
   {
     unsigned startOffset = sm.getFileOffset(loc);
@@ -674,8 +696,11 @@ public:
         fmt.Add("kind", kind);
         fmt.Add("pretty", qualName);
         fmt.Add("sym", symbol);
-        if (!context.empty()) {
-          fmt.Add("context", context);
+        if (!context.mName.empty()) {
+          fmt.Add("context", context.mName);
+        }
+        if (!context.mSymbol.empty()) {
+          fmt.Add("contextsym", context.mSymbol);
         }
 
         std::string s;
@@ -725,7 +750,7 @@ public:
                   std::string qualName,
                   SourceLocation loc,
                   std::string symbol,
-                  std::string context = "",
+                  Context context = Context(),
                   int flags = 0)
   {
     std::vector<std::string> v = { symbol };
