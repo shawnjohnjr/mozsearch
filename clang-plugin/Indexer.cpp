@@ -1296,6 +1296,9 @@ public:
   }
 
   void MacroUsed(const Token &tok, const MacroInfo *macro) {
+    if (!macro) {
+      return;
+    }
     if (macro->isBuiltinMacro()) {
       return;
     }
