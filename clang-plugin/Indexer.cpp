@@ -191,14 +191,14 @@ class PreprocessorHook : public PPCallbacks
 public:
   PreprocessorHook(IndexConsumer *c) : indexer(c) {}
 
-  virtual void MacroDefined(const Token &tok, const MacroDirective *md);
+  virtual void MacroDefined(const Token &tok, const MacroDirective *md) override;
 
-  virtual void MacroExpands(const Token &tok, const MacroDirective *md,
-                            SourceRange range, const MacroArgs *ma);
-  virtual void MacroUndefined(const Token &tok, const MacroDirective *md);
-  virtual void Defined(const Token &tok, const MacroDirective *md, SourceRange range);
-  virtual void Ifdef(SourceLocation loc, const Token &tok, const MacroDirective *md);
-  virtual void Ifndef(SourceLocation loc, const Token &tok, const MacroDirective *md);
+  virtual void MacroExpands(const Token &tok, const MacroDefinition& md,
+                            SourceRange range, const MacroArgs *ma) override;
+  virtual void MacroUndefined(const Token &tok, const MacroDefinition& md) override;
+  virtual void Defined(const Token &tok, const MacroDefinition& md, SourceRange range) override;
+  virtual void Ifdef(SourceLocation loc, const Token &tok, const MacroDefinition& md) override;
+  virtual void Ifndef(SourceLocation loc, const Token &tok, const MacroDefinition& md) override;
 
 #if 0
   virtual void InclusionDirective(SourceLocation hashLoc,
@@ -1040,7 +1040,7 @@ public:
     // class name.
     if (isa<CXXDestructorDecl>(d)) {
       const char* p = sm.getCharacterData(loc);
-      assert(p == '~');
+      assert(*p == '~');
       p++;
 
       unsigned skipped = 1;
@@ -1291,6 +1291,7 @@ public:
   }
 
   void MacroUsed(const Token &tok, const MacroInfo *macro) {
+    printf("MacroUsed\n");
     if (macro->isBuiltinMacro()) {
       return;
     }
@@ -1309,48 +1310,40 @@ public:
 };
 
 void
-PreprocessorHook::MacroDefined(const Token &tok, const MacroDirective *md)
+PreprocessorHook::MacroDefined(const Token &tok, const MacroDirective* md)
 {
   indexer->MacroDefined(tok, md);
 }
 
 void
-PreprocessorHook::MacroExpands(const Token &tok, const MacroDirective *md,
+PreprocessorHook::MacroExpands(const Token &tok, const MacroDefinition& md,
                                SourceRange range, const MacroArgs *ma)
 {
-  indexer->MacroUsed(tok, md->getMacroInfo());
+  indexer->MacroUsed(tok, md.getMacroInfo());
 }
 
 void
-PreprocessorHook::MacroUndefined(const Token &tok, const MacroDirective *md)
+PreprocessorHook::MacroUndefined(const Token &tok, const MacroDefinition& md)
 {
-  if (md) {
-    indexer->MacroUsed(tok, md->getMacroInfo());
-  }
+  indexer->MacroUsed(tok, md.getMacroInfo());
 }
 
 void
-PreprocessorHook::Defined(const Token &tok, const MacroDirective *md, SourceRange range)
+PreprocessorHook::Defined(const Token &tok, const MacroDefinition& md, SourceRange range)
 {
-  if (md) {
-    indexer->MacroUsed(tok, md->getMacroInfo());
-  }
+  indexer->MacroUsed(tok, md.getMacroInfo());
 }
 
 void
-PreprocessorHook::Ifdef(SourceLocation loc, const Token &tok, const MacroDirective *md)
+PreprocessorHook::Ifdef(SourceLocation loc, const Token &tok, const MacroDefinition& md)
 {
-  if (md) {
-    indexer->MacroUsed(tok, md->getMacroInfo());
-  }
+  indexer->MacroUsed(tok, md.getMacroInfo());
 }
 
 void
-PreprocessorHook::Ifndef(SourceLocation loc, const Token &tok, const MacroDirective *md)
+PreprocessorHook::Ifndef(SourceLocation loc, const Token &tok, const MacroDefinition& md)
 {
-  if (md) {
-    indexer->MacroUsed(tok, md->getMacroInfo());
-  }
+  indexer->MacroUsed(tok, md.getMacroInfo());
 }
 
 class IndexAction : public PluginASTAction
