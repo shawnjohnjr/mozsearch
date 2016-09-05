@@ -410,7 +410,7 @@ private:
           llvm::raw_string_ostream stream(backing);
           const TemplateArgumentList &templateArgs = spec->getTemplateArgs();
           TemplateSpecializationType::PrintTemplateArgumentList(
-            stream, templateArgs.data(), templateArgs.size(), PrintingPolicy(ci.getLangOpts()));
+            stream, templateArgs.asArray(), PrintingPolicy(ci.getLangOpts()));
           result += stream.str();
         }
       } else if (const auto *nd = dyn_cast<NamespaceDecl>(dc)) {
@@ -1291,7 +1291,6 @@ public:
   }
 
   void MacroUsed(const Token &tok, const MacroInfo *macro) {
-    printf("MacroUsed\n");
     if (macro->isBuiltinMacro()) {
       return;
     }
