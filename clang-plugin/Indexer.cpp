@@ -409,8 +409,13 @@ private:
           std::string backing;
           llvm::raw_string_ostream stream(backing);
           const TemplateArgumentList &templateArgs = spec->getTemplateArgs();
+#if CLANG_VERSION_MAJOR > 3 || (CLANG_VERSION_MAJOR == 3 && CLANG_VERSION_MINOR >= 9)
           TemplateSpecializationType::PrintTemplateArgumentList(
             stream, templateArgs.asArray(), PrintingPolicy(ci.getLangOpts()));
+#else
+          TemplateSpecializationType::PrintTemplateArgumentList(
+            stream, templateArgs.data(), templateArgs.size(), PrintingPolicy(ci.getLangOpts()));
+#endif
           result += stream.str();
         }
       } else if (const auto *nd = dyn_cast<NamespaceDecl>(dc)) {
