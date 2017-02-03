@@ -91,7 +91,7 @@ class SearchResults(object):
         self.results_hash = {}
         self.compiled = {}
 
-        self.count = 0
+        self.count = {}
 
     def set_path_filter(self, path):
         if not path or path == '.*':
@@ -158,15 +158,20 @@ class SearchResults(object):
             self.results_hash[key] = True
 
             path_results[lno] = line
-            self.count += 1
+            self.count[pathkind] = self.count.get(pathkind, 0) + 1
 
             if self.maxed_out():
                 break
 
     def maxed_out(self):
-        return self.count == self.max_count
+        for pathkind in self.path_precedences:
+            if self.count.get(pathkind, 0) < self.max_count:
+                return False
+        return True
 
     def sort_compiled(self):
+        count = 0
+
         result = collections.OrderedDict()
         for pathkind in self.path_precedences:
             for qkind in self.compiled.get(pathkind, []):
@@ -177,6 +182,8 @@ class SearchResults(object):
                     lnos = lines_map.keys()
                     lnos.sort()
                     lines = [ lines_map[lno] for lno in lnos ]
+                    lines = lines[:self.max_count - count]
+                    count += len(lines)
                     if lines or qkind == 'Files':
                         result.setdefault(pathkind, collections.OrderedDict()).setdefault(qkind, []).append({'path': path, 'lines': lines})
 
