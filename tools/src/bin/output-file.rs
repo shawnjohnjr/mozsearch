@@ -22,11 +22,12 @@ use languages::FormatAs;
 use tools::output::{PanelItem, PanelSection};
 
 fn main() {
+    eprintln!("!!!!!!!!!!!!!!!!!!!!! output-file");
     let args: Vec<_> = env::args().collect();
     let (base_args, fname_args) = args.split_at(3);
 
     let cfg = config::load(&base_args[1], false);
-    println!("Config file read");
+    eprintln!("Config file read");
 
     let tree_name = &base_args[2];
     let tree_config = cfg.trees.get(tree_name).unwrap();
@@ -34,7 +35,7 @@ fn main() {
     let jumps_fname = format!("{}/jumps", tree_config.paths.index_path);
     //let jumps : std::collections::HashMap<String, tools::analysis::Jump> = std::collections::HashMap::new();
     let jumps = read_jumps(&jumps_fname);
-    println!("Jumps read");
+    eprintln!("Jumps read");
 
     let (blame_commit, head_oid) = match &tree_config.git {
         &Some(ref git) => {
@@ -51,7 +52,7 @@ fn main() {
     };
 
     for path in fname_args {
-        println!("File {}", path);
+        eprintln!("File {}", path);
 
         let output_fname = format!("{}/file/{}", tree_config.paths.index_path, path);
         let source_fname = find_source_file(path, &tree_config.paths.files_path, &tree_config.paths.objdir_path);
@@ -64,7 +65,7 @@ fn main() {
         let source_file = match File::open(source_fname.clone()) {
             Ok(f) => f,
             Err(_) => {
-                println!("Unable to open file");
+                eprintln!("Unable to open file");
                 continue;
             },
         };
@@ -101,7 +102,7 @@ fn main() {
                         input.push_str(&bytes.iter().map(|c| *c as char).collect::<String>());
                     },
                     Err(e) => {
-                        println!("Unable to read file: {:?}", e);
+                        eprintln!("Unable to read file: {:?}", e);
                         continue;
                     }
                 }

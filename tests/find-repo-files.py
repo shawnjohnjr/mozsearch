@@ -42,6 +42,9 @@ for line in lines:
 
     (_, ext) = os.path.splitext(path)
     if ext == '.idl':
+        if path.endswith('nsITelephonyService.idl'):
+            continue
+
         # This file causes problems because an IDL file of the same
         # name exists in browser/, android/, and other places, and
         # they all end up in dist/include.

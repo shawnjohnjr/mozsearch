@@ -13,7 +13,9 @@ CONFIG_REPO=$(realpath $1)
 CONFIG_FILE=$(realpath $2)
 TREE_NAME=$3
 
-cat $INDEX_ROOT/repo-files $INDEX_ROOT/objdir-files | \
+#cat $INDEX_ROOT/repo-files $INDEX_ROOT/objdir-files | \
+#cat $INDEX_ROOT/repo-files | \
+cat $INDEX_ROOT/objdir-files | \
     parallel --files --halt 2 -X --eta \
 	     $MOZSEARCH_PATH/tools/target/release/output-file $CONFIG_FILE $TREE_NAME
 

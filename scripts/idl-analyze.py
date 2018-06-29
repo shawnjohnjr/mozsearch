@@ -256,4 +256,5 @@ if analysis:
         sys.exit(1)
     for p in r.productions:
         if isinstance(p, xpidl.Interface):
+            print >> sys.stderr, '--------------  ' + p.name + '------------------'
             handle_interface(analysis.get(p.name, {}), p)

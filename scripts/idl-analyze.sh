@@ -16,7 +16,7 @@ if [ ! -d /tmp/pymodules ]
 then
     mkdir /tmp/pymodules
     pushd /tmp/pymodules
-    wget "https://hg.mozilla.org/mozilla-central/raw-file/tip/xpcom/idl-parser/xpidl/xpidl.py"
+    wget "https://www.dropbox.com/s/vayxs3camz4mfjo/xpidl.py"
     mkdir ply
     pushd ply
     wget "https://hg.mozilla.org/mozilla-central/raw-file/tip/other-licenses/ply/ply/__init__.py"
